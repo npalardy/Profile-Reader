@@ -3,7 +3,6 @@ Begin Window Wnd_Main
    BackColor       =   &cFFFFFF00
    Backdrop        =   0
    CloseButton     =   True
-   Compatibility   =   ""
    Composite       =   False
    Frame           =   0
    FullScreen      =   False
@@ -11,7 +10,7 @@ Begin Window Wnd_Main
    HasBackColor    =   False
    Height          =   400
    ImplicitInstance=   True
-   LiveResize      =   True
+   LiveResize      =   "True"
    MacProcID       =   0
    MaxHeight       =   32000
    MaximizeButton  =   True
@@ -62,6 +61,7 @@ Begin Window Wnd_Main
       ScrollbarHorizontal=   False
       ScrollBarVertical=   True
       SelectionType   =   0
+      ShowDropIndicator=   False
       TabIndex        =   0
       TabPanelIndex   =   0
       TabStop         =   True
@@ -69,6 +69,7 @@ Begin Window Wnd_Main
       TextSize        =   0.0
       TextUnit        =   0
       Top             =   64
+      Transparent     =   False
       Underline       =   False
       UseFocusRing    =   True
       Visible         =   True
@@ -112,6 +113,7 @@ Begin Window Wnd_Main
       ScrollbarHorizontal=   False
       ScrollBarVertical=   True
       SelectionType   =   0
+      ShowDropIndicator=   False
       TabIndex        =   1
       TabPanelIndex   =   0
       TabStop         =   True
@@ -119,6 +121,7 @@ Begin Window Wnd_Main
       TextSize        =   0.0
       TextUnit        =   0
       Top             =   64
+      Transparent     =   False
       Underline       =   False
       UseFocusRing    =   True
       Visible         =   True
@@ -127,17 +130,14 @@ Begin Window Wnd_Main
       _ScrollWidth    =   -1
    End
    Begin Timer tmrCheckForParentChange
-      Height          =   32
+      Enabled         =   True
       Index           =   -2147483648
       InitialParent   =   ""
-      Left            =   0
       LockedInPosition=   False
       Mode            =   2
       Period          =   1000
       Scope           =   2
       TabPanelIndex   =   0
-      Top             =   0
-      Width           =   32
    End
    Begin Label lblParentPath
       AutoDeactivate  =   True
@@ -161,6 +161,7 @@ Begin Window Wnd_Main
       Selectable      =   False
       TabIndex        =   2
       TabPanelIndex   =   0
+      TabStop         =   True
       Text            =   "/path/to/folder"
       TextAlign       =   0
       TextColor       =   &c00000000
@@ -174,39 +175,121 @@ Begin Window Wnd_Main
       Width           =   878
    End
    Begin Timer tmrFixMethodSelection
-      Height          =   32
+      Enabled         =   True
       Index           =   -2147483648
       InitialParent   =   ""
-      Left            =   0
       LockedInPosition=   False
       Mode            =   0
       Period          =   20
       Scope           =   0
       TabPanelIndex   =   0
-      Top             =   0
-      Width           =   32
    End
    Begin Timer tmrUpdateMouseOverHighlighting
-      Height          =   32
+      Enabled         =   True
       Index           =   -2147483648
       InitialParent   =   ""
-      Left            =   0
       LockedInPosition=   False
       Mode            =   0
       Period          =   100
       Scope           =   0
       TabPanelIndex   =   0
-      Top             =   0
-      Width           =   32
+   End
+   Begin splitter splitter1
+      AcceptFocus     =   False
+      AcceptTabs      =   False
+      AutoDeactivate  =   True
+      Backdrop        =   0
+      DoubleBuffer    =   True
+      DrawHandles     =   True
+      Enabled         =   True
+      HasBackColor    =   False
+      Height          =   316
+      HelpTag         =   ""
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Left            =   180
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   0
+      SplitterColor   =   &c00000000
+      TabIndex        =   3
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Top             =   64
+      Transparent     =   True
+      UseFocusRing    =   True
+      Visible         =   True
+      Width           =   12
    End
 End
 #tag EndWindow
 
 #tag WindowCode
+	#tag Method, Flags = &h0
+		Sub Constructor(profileDoc as ProfileDocument)
+		  // Calling the overridden superclass constructor.
+		  Super.Constructor
+		  
+		  Show(profileDoc, false)
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
-		Protected Sub pPopulateMethodsListBox()
+		Protected Function ExpandedColor() As Color
+		  If Color.IsDarkMode Then
+		    Return kDarkModeExpandedColor
+		  Else
+		    Return kLightModeExpandedColor
+		  End If
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub HandleDeleteProfile(f as folderitem)
+		  dim dlg as new MessageDialog
+		  dlg.Message = "Really delete """ + f.Name + """?"
+		  dlg.ActionButton.Caption = "Delete"
+		  dlg.CancelButton.Visible = True
+		  dim btn as MessageDialogButton = dlg.ShowModalWithin( self )
+		  if btn.Caption = "Delete" then
+		    f.Delete
+		    ScanParentFolder()
+		  end if
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub HandleRevealProfile(f as folderitem)
+		  #if TargetMacOS
+		    FinderReveal( f.NativePath )
+		  #else
+		    f.Parent.Launch
+		  #endif
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function MouseOverColor() As color
+		  If Color.IsDarkMode Then
+		    Return kDarkModeMouseOverColor
+		  Else
+		    Return kLightModeMouseOverColor
+		  End If
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub PopulateMethodsListBox()
 		  lbMethods.DeleteAllRows()
-		  if lbProfiles.ListIndex = -1 then return
+		  If lbProfiles.ListIndex = -1 Then 
+		    Return
+		  End If
 		  
 		  dim profile As ProfileDocument = lbProfiles.RowTag( lbProfiles.ListIndex )
 		  dim lastCol as Integer = lbMethods.ColumnCount - 1
@@ -262,8 +345,10 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub pPopulateProfilesListBox()
-		  if zProfileDocsDict is nil then return
+		Protected Sub PopulateProfilesListBox()
+		  If m_ProfileDocsDict Is Nil Then 
+		    Return
+		  End If
 		  
 		  dim selectedProfile as ProfileDocument
 		  if lbProfiles.ListIndex <> -1 and lbProfiles.ListIndex < lbProfiles.ListCount then
@@ -276,9 +361,9 @@ End
 		  lbProfiles.DeleteAllRows
 		  
 		  dim profileName as String
-		  dim dictValues() as Variant = zProfileDocsDict.Values
+		  dim dictValues() as Variant = m_ProfileDocsDict.Values
 		  for each profile as ProfileDocument in dictValues
-		    profileName = profile.StartDate.SQLDateTime
+		    profileName = profile.Document.Name + "(" + profile.StartDate.SQLDateTime + ")"
 		    lbProfiles.AddRow( profileName )
 		    lbProfiles.RowTag( lbProfiles.LastIndex ) = profile
 		  next profile
@@ -291,7 +376,7 @@ End
 		  lbProfiles.Sort
 		  
 		  if selectedProfile <> nil then
-		    pShowProfile( selectedProfile.ID )
+		    ShowProfile( selectedProfile.ID )
 		  end if
 		  
 		  
@@ -299,80 +384,130 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub pScanParentFolder()
+		Protected Sub ScanParentFolder()
 		  // Scans the parent folder and pulls out all the profiles
 		  
-		  if zProfileDocsDict is nil then
-		    zProfileDocsDict = new Dictionary
+		  if m_ProfileDocsDict is nil then
+		    m_ProfileDocsDict = New Dictionary
 		  end if
 		  
 		  dim pFolder as FolderItem = self.ParentFolder
-		  if pFolder is nil then return // Really shouldn't happen
+		  If pFolder Is Nil Then 
+		    Return // Really shouldn't happen
+		  End If
 		  
-		  zParentLastModDate = pFolder.ModificationDate
+		  m_ParentLastModDate = pFolder.ModificationDate
 		  
 		  dim updateListBox as Boolean
 		  dim fileList() as FolderItem
 		  dim cnt as Integer = pFolder.Count
-		  for i as Integer = 1 to cnt
-		    fileList.Append( pFolder.Item( i ) )
-		  next
 		  
-		  dim newDict as new Dictionary
-		  for each f as FolderItem in fileList
-		    dim fName as string = f.Name
-		    if fName.Left( 7 ) = "Profile" and fName.Right( 4 ) = ".txt" then
-		      dim profile as ProfileDocument = ProfileDocument.CreateFromDocument( f )
+		  
+		  For i As Integer = 1 To cnt
+		    fileList.Append( pFolder.Item( i ) )
+		  Next
+		  
+		  Dim newDict As New Dictionary
+		  For Each f As FolderItem In fileList
+		    Dim fName As String = f.Name
+		    If fName.Left( 7 ) = "Profile" And fName.Right( 4 ) = ".txt" Then
+		      Dim profile As ProfileDocument = ProfileDocument.CreateFromDocument( f )
 		      
 		      // Rename the FolderItem if needed.
-		      if f.Name = "Profile.txt" then // Default name, so rename it
-		        dim sqlTime as String = profile.StartDate.SQLDateTime
-		        dim newNamePrefix as String = "Profile " + sqlTime.ReplaceAll( ":", "-" )
-		        dim newNameSuffix as String = ".txt"
-		        dim newName as String = newNamePrefix + newNameSuffix
-		        dim moveTo as FolderItem = pFolder.Child( newName )
-		        dim index as Integer
-		        while moveTo.Exists
+		      If f.Name = "Profile.txt" Then // Default name, so rename it
+		        Dim sqlTime As String = profile.StartDate.SQLDateTime
+		        Dim newNamePrefix As String = "Profile " + sqlTime.ReplaceAll( ":", "-" )
+		        Dim newNameSuffix As String = ".txt"
+		        Dim newName As String = newNamePrefix + newNameSuffix
+		        Dim moveTo As FolderItem = pFolder.Child( newName )
+		        Dim index As Integer
+		        While moveTo.Exists
 		          index = index + 1
 		          newName = newNamePrefix + " (" + Str( index ) + ")" + newNameSuffix
 		          moveTo = pFolder.Child( newName )
-		        wend
+		        Wend
 		        f.Name = newName
 		        profile.Document = f
-		      end if
+		      End If
 		      
-		      if profile <> nil then
-		        if not zProfileDocsDict.HasKey( profile.ID ) then
+		      If profile <> Nil Then
+		        If Not m_ProfileDocsDict.HasKey( profile.ID ) Then
 		          updateListBox = True
-		        end if
+		        End If
 		        newDict.Value( profile.ID ) = profile
-		      end if
-		    end if
-		  next
+		      End If
+		    End If
+		  Next
 		  
 		  // Is there anything there?
 		  if newDict.Count = 0 then
 		    
-		    pShowMessageDialog( "All profiles have been deleted.", "Close" )
+		    ShowMessageDialog( "All profiles have been deleted.", "Close" )
 		    
 		  else
 		    
 		    // Was something deleted?
-		    if zProfileDocsDict.Count <> newDict.Count then
+		    if m_ProfileDocsDict.Count <> newDict.Count then
 		      updateListBox = True
 		    end if
 		    
-		    zProfileDocsDict = newDict
+		    m_ProfileDocsDict = newDict
 		    if updateListBox then
-		      pPopulateProfilesListBox()
+		      PopulateProfilesListBox()
 		    end if
 		    
 		  end if
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub Show(profileDoc as ProfileDocument, scanParent as boolean = true)
+		  // By the time the doc gets here, it will have been validated
+		  
+		  self.Show()
+		  
+		  if m_ProfileDocsDict is nil then
+		    m_ProfileDocsDict = new Dictionary
+		  End If
+		  
+		  If Self.ParentFolder Is Nil Or Self.ParentFolder.NativePath <> profileDoc.Document.NativePath Then
+		    Self.ParentFolder = profileDoc.Document.Parent
+		  End If
+		  Dim pFolder As FolderItem = Self.ParentFolder
+		  
+		  // Rename the FolderItem if needed.
+		  Dim f As FolderItem = profileDoc.Document
+		  If f.Name = "Profile.txt" Then // Default name, so rename it
+		    Dim sqlTime As String = profileDoc.StartDate.SQLDateTime
+		    Dim newNamePrefix As String = "Profile " + sqlTime.ReplaceAll( ":", "-" )
+		    Dim newNameSuffix As String = ".txt"
+		    Dim newName As String = newNamePrefix + newNameSuffix
+		    Dim moveTo As FolderItem = pFolder.Child( newName )
+		    Dim index As Integer
+		    While moveTo.Exists
+		      index = index + 1
+		      newName = newNamePrefix + " (" + Str( index ) + ")" + newNameSuffix
+		      moveTo = pFolder.Child( newName )
+		    Wend
+		    f.Name = newName
+		    profileDoc.Document = f
+		  End If
+		  
+		  if scanParent = true then
+		    ScanParentFolder()
+		  Else
+		    m_ProfileDocsDict = New Dictionary
+		    m_ProfileDocsDict.Value( profileDoc.ID ) = profileDoc
+		    PopulateProfilesListBox
+		  End If
+		  
+		  ShowProfile( profileDoc )
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
-		Protected Sub pShowMessageDialog(msg As String, caption As String)
+		Protected Sub ShowMessageDialog(msg As String, caption As String)
 		  dim dlg as new MessageDialog
 		  dlg.Message = msg
 		  dlg.ActionButton.Caption = caption
@@ -383,8 +518,8 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub pShowProfile(profileID As String)
-		  if profileID = "" then
+		Protected Sub ShowProfile(profileID As String)
+		  If profileID = "" Then
 		    lbProfiles.ListIndex = -1
 		    return
 		  end if
@@ -401,60 +536,52 @@ End
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Sub Show(profileDoc as ProfileDocument)
-		  // By the time the doc gets here, it will have been validated
-		  
-		  self.Show()
-		  
-		  if zProfileDocsDict is nil then
-		    zProfileDocsDict = new Dictionary
-		  end if
-		  
-		  if self.ParentFolder is nil or self.ParentFolder.NativePath <> profileDoc.Document.NativePath then
-		    self.ParentFolder = profileDoc.Document.Parent
-		  end if
-		  dim pFolder as FolderItem = self.ParentFolder
-		  
-		  // Rename the FolderItem if needed.
-		  dim f as FolderItem = profileDoc.Document
-		  if f.Name = "Profile.txt" then // Default name, so rename it
-		    dim sqlTime as String = profileDoc.StartDate.SQLDateTime
-		    dim newNamePrefix as String = "Profile " + sqlTime.ReplaceAll( ":", "-" )
-		    dim newNameSuffix as String = ".txt"
-		    dim newName as String = newNamePrefix + newNameSuffix
-		    dim moveTo as FolderItem = pFolder.Child( newName )
-		    dim index as Integer
-		    while moveTo.Exists
-		      index = index + 1
-		      newName = newNamePrefix + " (" + Str( index ) + ")" + newNameSuffix
-		      moveTo = pFolder.Child( newName )
-		    wend
-		    f.Name = newName
-		    profileDoc.Document = f
-		  end if
-		  
-		  pScanParentFolder()
-		  pShowProfile( profileDoc )
-		  
-		End Sub
-	#tag EndMethod
 
+	#tag Property, Flags = &h1
+		Protected m_LastSelectedMethodProfile As ProfileBase
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_MouseOverPrevious As Integer = -1
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_MouseOverRow As Integer = -1
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_ParentFolder As FolderItemAlias
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_ParentLastModDate As Date
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		#tag Note
+			Key is the ProfileDocument.ID
+		#tag EndNote
+		Protected m_ProfileDocsDict As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_Valid As Boolean
+	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  if zParentFolder = nil then
+			  if m_ParentFolder = nil then
 			    return nil
 			  else
-			    return zParentFolder
+			    return m_ParentFolder
 			  end if
 			  
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  zParentFolder = value
+			  m_ParentFolder = value
 			  if value <> nil then
 			    lblParentPath.Text = value.NativePath
 			  else
@@ -465,37 +592,6 @@ End
 		#tag EndSetter
 		ParentFolder As FolderItem
 	#tag EndComputedProperty
-
-	#tag Property, Flags = &h1
-		Protected zLastSelectedMethodProfile As ProfileBase
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zMouseOverPrevious As Integer = -1
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zMouseOverRow As Integer = -1
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zParentFolder As FolderItemAlias
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zParentLastModDate As Date
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		#tag Note
-			Key is the ProfileDocument.ID
-		#tag EndNote
-		Protected zProfileDocsDict As Dictionary
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zValid As Boolean
-	#tag EndProperty
 
 
 	#tag Constant, Name = kColumnAverageTime, Type = Double, Dynamic = False, Default = \"3", Scope = Protected
@@ -510,10 +606,24 @@ End
 	#tag Constant, Name = kColumnTimeSpent, Type = Double, Dynamic = False, Default = \"2", Scope = Protected
 	#tag EndConstant
 
-	#tag Constant, Name = kExpandedColor, Type = Color, Dynamic = False, Default = \"&cD2CBFD", Scope = Protected
+	#tag Constant, Name = kDarkModeExpandedColor, Type = Color, Dynamic = False, Default = \"&c817B91", Scope = Protected
+		#Tag Instance, Platform = Mac OS, Language = Default, Definition  = \"&c817B91"
+		#Tag Instance, Platform = Windows, Language = Default, Definition  = \"&c817B91"
 	#tag EndConstant
 
-	#tag Constant, Name = kMouseOverColor, Type = Color, Dynamic = False, Default = \"&cFFA7AA", Scope = Protected
+	#tag Constant, Name = kDarkModeMouseOverColor, Type = Color, Dynamic = False, Default = \"&c835658", Scope = Protected
+		#Tag Instance, Platform = Mac OS, Language = Default, Definition  = \"&c835658"
+		#Tag Instance, Platform = Windows, Language = Default, Definition  = \"&c835658"
+	#tag EndConstant
+
+	#tag Constant, Name = kLightModeExpandedColor, Type = Color, Dynamic = False, Default = \"&cD2CBFD", Scope = Protected
+		#Tag Instance, Platform = Mac OS, Language = Default, Definition  = \"&cD2CBFD"
+		#Tag Instance, Platform = Windows, Language = Default, Definition  = \"&cD2CBFD"
+	#tag EndConstant
+
+	#tag Constant, Name = kLightModeMouseOverColor, Type = Color, Dynamic = False, Default = \"&cFFA7AA", Scope = Protected
+		#Tag Instance, Platform = Mac OS, Language = Default, Definition  = \"&cFFA7AA"
+		#Tag Instance, Platform = Windows, Language = Default, Definition  = \"&cFFA7AA"
 	#tag EndConstant
 
 
@@ -522,23 +632,35 @@ End
 #tag Events lbProfiles
 	#tag Event
 		Sub Change()
-		  pPopulateMethodsListBox()
+		  If Me.SelectedRowIndex <> -1 Then
+		    Self.Title = Me.SelectedRowValue
+		  Else
+		    Self.Title = "Profile Reader"
+		  End If
+		  PopulateMethodsListBox()
 		  
 		End Sub
 	#tag EndEvent
 	#tag Event
 		Function ConstructContextualMenu(base as MenuItem, x as Integer, y as Integer) As Boolean
-		  while base.Count <> 0
+		  While base.Count <> 0
 		    base.Remove 0
 		  wend
 		  
 		  dim m as MenuItem
 		  
-		  m = new MenuItem( "Reveal" )
-		  m.Enabled = me.ListIndex <> -1
+		  m = New MenuItem( "Open in new window" )
+		  m.Name = "OpenNew"
+		  m.Enabled = Me.ListIndex <> -1
 		  base.Append m
 		  
-		  m = new MenuItem( "Delete..." )
+		  m = New MenuItem( "Reveal" )
+		  m.Name = "Reveal"
+		  m.Enabled = Me.ListIndex <> -1
+		  base.Append m
+		  
+		  m = New MenuItem( "Delete..." )
+		  m.Name = "Delete"
 		  m.Enabled = me.ListIndex <> -1
 		  base.Append m
 		  
@@ -566,28 +688,24 @@ End
 		    return False
 		  end if
 		  
-		  if hitItem.Text = "Delete..." then
-		    dim dlg as new MessageDialog
-		    dlg.Message = "Really delete """ + f.Name + """?"
-		    dlg.ActionButton.Caption = "Delete"
-		    dlg.CancelButton.Visible = True
-		    dim btn as MessageDialogButton = dlg.ShowModalWithin( self )
-		    if btn.Caption = "Delete" then
-		      f.Delete
-		      pScanParentFolder()
-		    end if
-		    return True
+		  Select Case hitItem.Name
 		    
-		  elseif hitItem.Text = "Reveal" then
-		    #if TargetMacOS
-		      FinderReveal( f.NativePath )
-		    #else
-		      f.Parent.Launch
-		    #endif
+		  Case "OpenNew"
+		    Dim w As New Wnd_Main( profile )
 		    
-		  end if
+		  Case "Delete"
+		    HandleDeleteProfile(f)
+		    
+		  Case "Reveal"
+		    HandleRevealProfile(f)
+		    
+		  Else
+		    Return False
+		  End Select
 		  
-		  return True
+		  Return True
+		  
+		  
 		  
 		End Function
 	#tag EndEvent
@@ -726,9 +844,9 @@ End
 		    me.HeadingIndex = -1
 		  end if
 		  
-		  dim savedProfile as ProfileBase = zLastSelectedMethodProfile
-		  pPopulateMethodsListBox()
-		  zLastSelectedMethodProfile = savedProfile
+		  dim savedProfile as ProfileBase = m_LastSelectedMethodProfile
+		  PopulateMethodsListBox()
+		  m_LastSelectedMethodProfile = savedProfile
 		  tmrFixMethodSelection.Mode = Timer.ModeSingle
 		  
 		  return True
@@ -737,7 +855,7 @@ End
 	#tag EndEvent
 	#tag Event
 		Function CellBackgroundPaint(g As Graphics, row As Integer, column As Integer) As Boolean
-		  if me.Selected( row ) then
+		  If Me.Selected( row ) Then
 		    return False
 		  end if
 		  
@@ -748,12 +866,12 @@ End
 		    profile = me.RowTag( row )
 		  end if
 		  
-		  if row = zMouseOverRow then
-		    g.ForeColor = kMouseOverColor
+		  if row = m_MouseOverRow then
+		    g.ForeColor = MouseOverColor
 		    g.FillRect( 0, 0, g.Width, g.Height )
-		    zMouseOverPrevious = zMouseOverRow
+		    m_MouseOverPrevious = m_MouseOverRow
 		  elseif row < me.ListCount and profile <> nil and profile.Expanded then
-		    g.ForeColor = kExpandedColor
+		    g.ForeColor = ExpandedColor
 		    g.FillRect( 0, 0, g.Width, g.Height )
 		  else
 		    changeIt = False
@@ -771,8 +889,8 @@ End
 		    row = -1
 		  end if
 		  
-		  if row <> zMouseOverRow then
-		    zMouseOverRow = row
+		  if row <> m_MouseOverRow then
+		    m_MouseOverRow = row
 		    tmrUpdateMouseOverHighlighting.Mode = Timer.ModeSingle
 		    tmrUpdateMouseOverHighlighting.Reset
 		  end if
@@ -781,8 +899,8 @@ End
 	#tag EndEvent
 	#tag Event
 		Sub MouseExit()
-		  if zMouseOverRow <> -1 then
-		    zMouseOverRow = -1
+		  if m_MouseOverRow <> -1 then
+		    m_MouseOverRow = -1
 		    tmrUpdateMouseOverHighlighting.Mode = Timer.ModeSingle
 		    tmrUpdateMouseOverHighlighting.Reset
 		  end if
@@ -796,13 +914,13 @@ End
 		    tag = me.RowTag( me.ListIndex )
 		  end if
 		  
-		  zLastSelectedMethodProfile = tag
+		  m_LastSelectedMethodProfile = tag
 		  
 		End Sub
 	#tag EndEvent
 	#tag Event
 		Function CellTextPaint(g As Graphics, row As Integer, column As Integer, x as Integer, y as Integer) As Boolean
-		  if me.RowTag( row ) IsA ProfileThread then
+		  If Me.RowTag( row ) IsA ProfileThread Then
 		    g.TextFont = "System"
 		    'g.TextSize = 10
 		  end if
@@ -819,8 +937,8 @@ End
 		    row = -1
 		  end if
 		  
-		  if row <> zMouseOverRow then
-		    zMouseOverRow = row
+		  if row <> m_MouseOverRow then
+		    m_MouseOverRow = row
 		    tmrUpdateMouseOverHighlighting.Mode = Timer.ModeSingle
 		    tmrUpdateMouseOverHighlighting.Reset
 		  end if
@@ -836,14 +954,14 @@ End
 		Sub Action()
 		  dim pFolder as FolderItem = ParentFolder
 		  if pFolder is nil or not pFolder.Exists then
-		    pShowMessageDialog( "The parent folder no longer exists.", "Close" )
-		    return
-		  end if
+		    ShowMessageDialog( "The parent folder no longer exists.", "Close" )
+		    Return
+		  End If
 		  
-		  if zParentLastModDate is nil then
-		    zParentLastModDate = pFolder.ModificationDate
-		  elseif zParentLastModDate.TotalSeconds <> pFolder.ModificationDate.TotalSeconds then
-		    pScanParentFolder
+		  If m_ParentLastModDate Is Nil Then
+		    m_ParentLastModDate = pFolder.ModificationDate
+		  ElseIf m_ParentLastModDate.TotalSeconds <> pFolder.ModificationDate.TotalSeconds Then
+		    ScanParentFolder
 		  end if
 		  
 		  lblParentPath.Text = pFolder.NativePath
@@ -854,7 +972,7 @@ End
 #tag Events tmrFixMethodSelection
 	#tag Event
 		Sub Action()
-		  dim savedProfile as ProfileBase = zLastSelectedMethodProfile
+		  dim savedProfile as ProfileBase = m_LastSelectedMethodProfile
 		  
 		  if savedProfile <> nil then
 		    dim lastRow as Integer = lbMethods.ListCount - 1
@@ -874,8 +992,8 @@ End
 #tag Events tmrUpdateMouseOverHighlighting
 	#tag Event
 		Sub Action()
-		  dim oldRow as Integer = zMouseOverPrevious
-		  dim row as Integer = zMouseOverRow
+		  dim oldRow as Integer = m_MouseOverPrevious
+		  dim row as Integer = m_MouseOverRow
 		  
 		  if oldRow <> -1 then
 		    lbMethods.InvalidateCell( oldRow, -1 )
@@ -884,47 +1002,61 @@ End
 		    lbMethods.InvalidateCell( row, -1 )
 		  end if
 		  
-		  zMouseOverPrevious = row
+		  m_MouseOverPrevious = row
 		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events splitter1
+	#tag Event
+		Sub Moved(delta as integer)
+		  lbProfiles.width = lbProfiles.Width + delta
+		  lbMethods.width = lbMethods.Width - delta
+		  
+		  splitter1.Left = lbProfiles.Left + lbProfiles.Width
+		  lbMethods.Left = splitter1.Left + splitter1.width
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag ViewBehavior
 	#tag ViewProperty
-		Name="BackColor"
+		Name="MinimumWidth"
 		Visible=true
-		Group="Appearance"
-		InitialValue="&hFFFFFF"
-		Type="Color"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Backdrop"
-		Visible=true
-		Group="Appearance"
-		Type="Picture"
-		EditorType="Picture"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="CloseButton"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Composite"
-		Visible=true
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Frame"
-		Visible=true
-		Group="Appearance"
-		InitialValue="0"
+		Group="Size"
+		InitialValue="64"
 		Type="Integer"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="MinimumHeight"
+		Visible=true
+		Group="Size"
+		InitialValue="64"
+		Type="Integer"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="MaximumWidth"
+		Visible=true
+		Group="Size"
+		InitialValue="32000"
+		Type="Integer"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="MaximumHeight"
+		Visible=true
+		Group="Size"
+		InitialValue="32000"
+		Type="Integer"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Type"
+		Visible=true
+		Group="Frame"
+		InitialValue="0"
+		Type="Types"
 		EditorType="Enum"
 		#tag EnumValues
 			"0 - Document"
@@ -937,138 +1069,47 @@ End
 			"7 - Global Floating Window"
 			"8 - Sheet Window"
 			"9 - Metal Window"
-			"10 - Drawer Window"
 			"11 - Modeless Dialog"
 		#tag EndEnumValues
 	#tag EndViewProperty
 	#tag ViewProperty
-		Name="FullScreen"
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-		EditorType="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="FullScreenButton"
+		Name="HasCloseButton"
 		Visible=true
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-		EditorType="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="HasBackColor"
-		Visible=true
-		Group="Appearance"
-		InitialValue="False"
-		Type="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Height"
-		Visible=true
-		Group="Position"
-		InitialValue="400"
-		Type="Integer"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="ImplicitInstance"
-		Visible=true
-		Group="Appearance"
+		Group="Frame"
 		InitialValue="True"
 		Type="Boolean"
-		EditorType="Boolean"
+		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
-		Name="Interfaces"
+		Name="HasMaximizeButton"
 		Visible=true
-		Group="ID"
-		Type="String"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="LiveResize"
-		Visible=true
-		Group="Appearance"
+		Group="Frame"
 		InitialValue="True"
 		Type="Boolean"
-		EditorType="Boolean"
+		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
-		Name="MacProcID"
+		Name="HasMinimizeButton"
 		Visible=true
-		Group="Appearance"
+		Group="Frame"
+		InitialValue="True"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="HasFullScreenButton"
+		Visible=true
+		Group="Frame"
+		InitialValue="False"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="DefaultLocation"
+		Visible=true
+		Group="Behavior"
 		InitialValue="0"
-		Type="Integer"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MaxHeight"
-		Visible=true
-		Group="Position"
-		InitialValue="32000"
-		Type="Integer"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MaximizeButton"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MaxWidth"
-		Visible=true
-		Group="Position"
-		InitialValue="32000"
-		Type="Integer"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MenuBar"
-		Visible=true
-		Group="Appearance"
-		Type="MenuBar"
-		EditorType="MenuBar"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MenuBarVisible"
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MinHeight"
-		Visible=true
-		Group="Position"
-		InitialValue="64"
-		Type="Integer"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MinimizeButton"
-		Visible=true
-		Group="Appearance"
-		InitialValue="True"
-		Type="Boolean"
-		EditorType="Boolean"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="MinWidth"
-		Visible=true
-		Group="Position"
-		InitialValue="64"
-		Type="Integer"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Name"
-		Visible=true
-		Group="ID"
-		Type="String"
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="Placement"
-		Visible=true
-		Group="Position"
-		InitialValue="0"
-		Type="Integer"
+		Type="Locations"
 		EditorType="Enum"
 		#tag EnumValues
 			"0 - Default"
@@ -1079,18 +1120,116 @@ End
 		#tag EndEnumValues
 	#tag EndViewProperty
 	#tag ViewProperty
+		Name="HasBackgroundColor"
+		Visible=true
+		Group="Background"
+		InitialValue="False"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="BackgroundColor"
+		Visible=true
+		Group="Background"
+		InitialValue="&hFFFFFF"
+		Type="Color"
+		EditorType="Color"
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Backdrop"
+		Visible=true
+		Group="Appearance"
+		InitialValue=""
+		Type="Picture"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Composite"
+		Visible=true
+		Group="Appearance"
+		InitialValue="False"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="FullScreen"
+		Visible=false
+		Group="Appearance"
+		InitialValue="False"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Height"
+		Visible=true
+		Group="Position"
+		InitialValue="400"
+		Type="Integer"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="ImplicitInstance"
+		Visible=true
+		Group="Appearance"
+		InitialValue="True"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Interfaces"
+		Visible=true
+		Group="ID"
+		InitialValue=""
+		Type="String"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="MacProcID"
+		Visible=true
+		Group="Appearance"
+		InitialValue="0"
+		Type="Integer"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="MenuBar"
+		Visible=true
+		Group="Appearance"
+		InitialValue=""
+		Type="MenuBar"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="MenuBarVisible"
+		Visible=false
+		Group="Appearance"
+		InitialValue="True"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Name"
+		Visible=true
+		Group="ID"
+		InitialValue=""
+		Type="String"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
 		Name="Resizeable"
 		Visible=true
 		Group="Appearance"
 		InitialValue="True"
 		Type="Boolean"
-		EditorType="Boolean"
+		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="Super"
 		Visible=true
 		Group="ID"
+		InitialValue=""
 		Type="String"
+		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="Title"
@@ -1098,6 +1237,7 @@ End
 		Group="Appearance"
 		InitialValue="Untitled"
 		Type="String"
+		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="Visible"
@@ -1105,7 +1245,7 @@ End
 		Group="Appearance"
 		InitialValue="True"
 		Type="Boolean"
-		EditorType="Boolean"
+		EditorType=""
 	#tag EndViewProperty
 	#tag ViewProperty
 		Name="Width"
@@ -1113,5 +1253,6 @@ End
 		Group="Position"
 		InitialValue="600"
 		Type="Integer"
+		EditorType=""
 	#tag EndViewProperty
 #tag EndViewBehavior

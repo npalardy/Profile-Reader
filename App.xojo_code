@@ -3,10 +3,10 @@ Protected Class App
 Inherits Application
 	#tag Event
 		Sub Close()
-		  if zDocOpenerTimer <> nil then
-		    zDocOpenerTimer.Mode = Timer.ModeOff
-		    RemoveHandler zDocOpenerTimer.Action, AddressOf pDocOpenerTimerAction
-		    zDocOpenerTimer = nil
+		  If DocOpenerTimer <> Nil Then
+		    DocOpenerTimer.Mode = Timer.ModeOff
+		    RemoveHandler DocOpenerTimer.Action, AddressOf DocOpenerTimerAction
+		    DocOpenerTimer = nil
 		  end if
 		  
 		End Sub
@@ -14,9 +14,9 @@ Inherits Application
 
 	#tag Event
 		Sub Open()
-		  zPostStartupTimer = new Tmr_PostStartup
-		  zPostStartupTimer.Period = 500
-		  zPostStartupTimer.Mode = Timer.ModeSingle
+		  PostStartupTimer = New Tmr_PostStartup
+		  PostStartupTimer.Period = 500
+		  PostStartupTimer.Mode = Timer.ModeSingle
 		  
 		  // This doesn't do anything other than generate a separate thread for profiling
 		  dim t as new Thd_Tester
@@ -29,8 +29,8 @@ Inherits Application
 	#tag Event
 		Sub OpenDocument(item As FolderItem)
 		  if item <> nil and item.Exists and not item.Directory then
-		    zDocsToOpen.Append item
-		    pGetDocOpenerTimer.Mode = Timer.ModeSingle
+		    DocsToOpen.Append item
+		    GetDocOpenerTimer.Mode = Timer.ModeSingle
 		    #if not TargetMacOS
 		      App.AutoQuit = False
 		    #endif
@@ -42,7 +42,7 @@ Inherits Application
 
 	#tag MenuHandler
 		Function FileOpen() As Boolean Handles FileOpen.Action
-			pDoFileOpen
+			DoFileOpen
 			return True
 			
 		End Function
@@ -59,25 +59,25 @@ Inherits Application
 
 
 	#tag Method, Flags = &h1
-		Protected Sub pDocOpenerTimerAction(sender As Timer)
+		Protected Sub DocOpenerTimerAction(sender As Timer)
 		  dim doc as FolderItem
-		  if zDocsToOpen.Ubound <> -1 then
-		    doc = zDocsToOpen.Pop
-		  end if
+		  If DocsToOpen.Ubound <> -1 Then
+		    doc = DocsToOpen.Pop
+		  End If
 		  
-		  if doc <> nil then
-		    dim profileDoc as ProfileDocument = ProfileDocument.CreateFromDocument( doc )
-		    if doc <> nil then
-		      dim w as Wnd_Main = pWindowForItem( doc )
-		      if w <> nil then
+		  If doc <> Nil Then
+		    Dim profileDoc As ProfileDocument = ProfileDocument.CreateFromDocument( doc )
+		    If doc <> Nil Then
+		      Dim w As Wnd_Main = WindowForItem( doc )
+		      If w <> Nil Then
 		        w.Show( profileDoc )
-		      end if
-		    end if
-		  end if
+		      End If
+		    End If
+		  End If
 		  
-		  if zDocsToOpen.Ubound <> -1 then
+		  If DocsToOpen.Ubound <> -1 Then
 		    sender.Mode = Timer.ModeSingle
-		    #if not TargetMacOS
+		    #If Not TargetMacOS
 		      App.AutoQuit = False
 		    #endif
 		  else
@@ -91,7 +91,7 @@ Inherits Application
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Sub pDoFileOpen()
+		Protected Sub DoFileOpen()
 		  dim dlg as new OpenDialog
 		  dlg.PromptText = "Select a ""Profile.txt"" file:"
 		  dlg.Filter = FileTypes1.Text
@@ -110,16 +110,16 @@ Inherits Application
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function pGetDocOpenerTimer() As Timer
-		  if zDocOpenerTimer = nil then
-		    zDocOpenerTimer = new Timer
-		    zDocOpenerTimer.Mode = Timer.ModeOff
-		    zDocOpenerTimer.Period = 100
+		Protected Function GetDocOpenerTimer() As Timer
+		  if DocOpenerTimer = nil then
+		    DocOpenerTimer = new Timer
+		    DocOpenerTimer.Mode = Timer.ModeOff
+		    DocOpenerTimer.Period = 100
 		    
-		    AddHandler zDocOpenerTimer.Action, AddressOf pDocOpenerTimerAction
+		    AddHandler DocOpenerTimer.Action, AddressOf DocOpenerTimerAction
 		  end if
 		  
-		  return zDocOpenerTimer
+		  return DocOpenerTimer
 		  
 		End Function
 	#tag EndMethod
@@ -129,17 +129,17 @@ Inherits Application
 		  // Tackles tasks after all other startup has finished
 		  
 		  if WindowCount = 0 then // No documents opened
-		    pDoFileOpen()
+		    DoFileOpen()
 		  end if
 		  
-		  zPostStartupTimer.Mode = Timer.ModeOff
-		  zPostStartupTimer = nil
+		  PostStartupTimer.Mode = Timer.ModeOff
+		  PostStartupTimer = nil
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
-		Protected Function pWindowForItem(item As FolderItem) As Wnd_Main
+		Protected Function WindowForItem(item As FolderItem) As Wnd_Main
 		  // Finds the Wnd_Main for the given item.
 		  // Otherwise, returns a new Wnd_Main
 		  
@@ -184,15 +184,15 @@ Inherits Application
 
 
 	#tag Property, Flags = &h1
-		Protected zDocOpenerTimer As Timer
+		Protected DocOpenerTimer As Timer
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected zDocsToOpen() As FolderItem
+		Protected DocsToOpen() As FolderItem
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected zPostStartupTimer As Timer
+		Protected PostStartupTimer As Timer
 	#tag EndProperty
 
 

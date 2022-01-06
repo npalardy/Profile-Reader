@@ -3,43 +3,43 @@ Protected Class ProfileDocument
 Inherits ProfileBase
 	#tag Event
 		Function GetChildCount() As Integer
-		  return if( zThreadsDict is nil, 0, zThreadsDict.Count )
+		  return if( m_ThreadsDict is nil, 0, m_ThreadsDict.Count )
 		End Function
 	#tag EndEvent
 
 
 	#tag Method, Flags = &h1001
 		Protected Sub Constructor(doc As FolderItem, docDate As Date, secondCount As Integer, text As String)
-		  zDocument = doc
-		  zStartDate = docDate
-		  zSeconds = secondCount
+		  m_Document = doc
+		  m_StartDate = docDate
+		  m_Seconds = secondCount
 		  
 		  text = text.Trim
 		  dim lines() as String = Split( text, EndOfLine.UNIX )
 		  
-		  zThreadsDict = new Dictionary
+		  m_ThreadsDict = new Dictionary
 		  
 		  for index as Integer = 0 to lines.Ubound
 		    dim data as new ProfileLineData( lines( index ) )
 		    if data.ThreadName = "" then continue // Shouldn't happen
 		    
 		    dim thd as ProfileThread
-		    if zThreadsDict.HasKey( data.ThreadName ) then
-		      thd = zThreadsDict.Value( data.ThreadName )
+		    if m_ThreadsDict.HasKey( data.ThreadName ) then
+		      thd = m_ThreadsDict.Value( data.ThreadName )
 		      thd.Add( data )
 		    else
 		      thd = new ProfileThread( me, data )
-		      zThreadsDict.Value( data.ThreadName ) = thd
+		      m_ThreadsDict.Value( data.ThreadName ) = thd
 		    end if
 		  next index
 		  
-		  zID = EncodeHex( Crypto.SHA256( docDate.SQLDateTime + EndOfLine.Unix + text ) )
+		  m_ID = EncodeHex( Crypto.SHA256( docDate.SQLDateTime + EndOfLine.Unix + text ) )
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		 Shared Function CreateFromDocument(doc As FolderItem) As ProfileDocument
+		Shared Function CreateFromDocument(doc As FolderItem) As ProfileDocument
 		  if doc is nil or not doc.Exists or doc.Directory then
 		    return nil
 		  end if
@@ -80,22 +80,22 @@ Inherits ProfileBase
 
 	#tag Method, Flags = &h0
 		Function Operator_Convert() As String
-		  return zID
+		  return m_ID
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function Seconds() As Integer
-		  return zSeconds
+		  return m_Seconds
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function StartDate() As Date
-		  if zStartDate <> nil then
-		    return new Date( zStartDate )
+		  if m_StartDate <> nil then
+		    return new Date( m_StartDate )
 		  else
 		    return nil
 		  end if
@@ -106,9 +106,11 @@ Inherits ProfileBase
 	#tag Method, Flags = &h0
 		Function Threads() As ProfileThread()
 		  dim r() as ProfileThread
-		  if zThreadsDict is nil then return r
+		  If m_ThreadsDict Is Nil Then 
+		    Return r
+		  End If
 		  
-		  dim values() as Variant = zThreadsDict.Values
+		  dim values() as Variant = m_ThreadsDict.Values
 		  dim sorter() as String
 		  for each item as ProfileThread in values
 		    r.Append item
@@ -126,8 +128,8 @@ Inherits ProfileBase
 		#tag Getter
 			Get
 			  dim r as FolderItem
-			  if zDocument <> nil then
-			    r = zDocument
+			  if m_Document <> nil then
+			    r = m_Document
 			  end if
 			  
 			  return r
@@ -135,7 +137,7 @@ Inherits ProfileBase
 		#tag EndGetter
 		#tag Setter
 			Set
-			  zDocument = value
+			  m_Document = value
 			  
 			End Set
 		#tag EndSetter
@@ -143,27 +145,30 @@ Inherits ProfileBase
 	#tag EndComputedProperty
 
 	#tag Property, Flags = &h1
-		Protected zDocument As FolderItemAlias
+		Protected m_Document As FolderItemAlias
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected zSeconds As Integer
+		Protected m_Seconds As Integer
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected zStartDate As Date
+		Protected m_StartDate As Date
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected zThreadsDict As Dictionary
+		Protected m_ThreadsDict As Dictionary
 	#tag EndProperty
 
 
 	#tag ViewBehavior
 		#tag ViewProperty
 			Name="Expanded"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"
@@ -171,6 +176,7 @@ Inherits ProfileBase
 			Group="ID"
 			InitialValue="-2147483648"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Left"
@@ -178,28 +184,39 @@ Inherits ProfileBase
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Name"
 			Visible=true
 			Group="ID"
+			InitialValue=""
 			Type="String"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Selected"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Super"
 			Visible=true
 			Group="ID"
+			InitialValue=""
 			Type="String"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="TimeSpent"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Double"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Top"
@@ -207,6 +224,7 @@ Inherits ProfileBase
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

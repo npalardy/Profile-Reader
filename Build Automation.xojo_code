@@ -7,7 +7,8 @@
 				Begin BuildProjectStep Build
 				End
 				Begin ExternalIDEScriptStep MacPostBuild
-					AppliesTo = 0
+					AppliesTo = 3
+					Architecture = 0
 					FolderItem = Li4AWG9qb1NjcmlwdHMAUHJvZmlsZSBSZWFkZXIgQnVpbGQueG9qb19zY3JpcHQ=
 				End
 			End

@@ -14,10 +14,10 @@ Protected Class ProfileBase
 
 	#tag Method, Flags = &h1
 		Protected Sub Constructor(myParent As ProfileBase, data As ProfileLineData)
-		  zParent = new WeakRef( myParent )
-		  zTimesCalled = data.TimesCalled
-		  zTimeSpentTotal = data.TimeSpent
-		  zPercentOfTotal = data.PercentOfTotal
+		  m_Parent = New WeakRef( myParent )
+		  m_TimesCalled = data.TimesCalled
+		  m_TimeSpentTotal = data.TimeSpent
+		  m_PercentOfTotal = data.PercentOfTotal
 		  
 		  RaiseEvent ConstructFromData( data )
 		  
@@ -26,42 +26,42 @@ Protected Class ProfileBase
 
 	#tag Method, Flags = &h0
 		Function ID() As String
-		  return zID
+		  return m_ID
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function PercentChildren() As Double
-		  return zPercentChildren
+		  return m_PercentChildren
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function PercentOfTotal() As Double
-		  return zPercentOfTotal
+		  return m_PercentOfTotal
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function TimesCalled() As Integer
-		  return zTimesCalled
+		  return m_TimesCalled
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function TimeSpentChildren() As Double
-		  return zTimeSpentChildren
+		  return m_TimeSpentChildren
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function TimeSpentTotal() As Double
-		  return zTimeSpentTotal
+		  return m_TimeSpentTotal
 		  
 		  
 		End Function
@@ -84,13 +84,41 @@ Protected Class ProfileBase
 		Expanded As Boolean
 	#tag EndProperty
 
+	#tag Property, Flags = &h1
+		Protected m_ID As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_Parent As WeakRef
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_PercentChildren As Double
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_PercentOfTotal As Double
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_TimesCalled As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_TimeSpentChildren As Double
+	#tag EndProperty
+
+	#tag Property, Flags = &h1
+		Protected m_TimeSpentTotal As Double
+	#tag EndProperty
+
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
 			  dim r as ProfileBase
 			  
-			  if zParent <> nil then
-			    dim o as Object = zParent.Value
+			  if m_Parent <> nil then
+			    dim o as Object = m_Parent.Value
 			    if o <> nil then
 			      r = ProfileBase( o )
 			    end if
@@ -113,47 +141,22 @@ Protected Class ProfileBase
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  return zTimeSpentTotal - zTimeSpentChildren
+			  return m_TimeSpentTotal - m_TimeSpentChildren
 			  
 			End Get
 		#tag EndGetter
 		TimeSpent As Double
 	#tag EndComputedProperty
 
-	#tag Property, Flags = &h1
-		Protected zID As String
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zParent As WeakRef
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zPercentChildren As Double
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zPercentOfTotal As Double
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zTimesCalled As Integer
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zTimeSpentChildren As Double
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected zTimeSpentTotal As Double
-	#tag EndProperty
-
 
 	#tag ViewBehavior
 		#tag ViewProperty
 			Name="Expanded"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"
@@ -161,6 +164,7 @@ Protected Class ProfileBase
 			Group="ID"
 			InitialValue="-2147483648"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Left"
@@ -168,28 +172,39 @@ Protected Class ProfileBase
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Name"
 			Visible=true
 			Group="ID"
+			InitialValue=""
 			Type="String"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Selected"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Super"
 			Visible=true
 			Group="ID"
+			InitialValue=""
 			Type="String"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="TimeSpent"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Double"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Top"
@@ -197,6 +212,7 @@ Protected Class ProfileBase
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

@@ -25,8 +25,8 @@ Protected Class ProfileLineData
 		    ThreadName = match.SubExpressionString( 1 )
 		    MethodNames = Split( match.SubExpressionString( 2 ), "->" )
 		    TimesCalled = match.SubExpressionString( 3 ).CDbl
-		    TimeSpent = pStringToDouble( match.SubExpressionString( 4 ) )
-		    PercentOfTotal = pStringToDouble( match.SubExpressionString( 5 ) )
+		    TimeSpent = StringToDouble( match.SubExpressionString( 4 ) )
+		    PercentOfTotal = StringToDouble( match.SubExpressionString( 5 ) )
 		    Hash = EncodeHex( Crypto.SHA256( text ) )
 		  end if
 		  
@@ -34,8 +34,8 @@ Protected Class ProfileLineData
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function pGetDecimalSep(value As String) As String
-		  static rx as RegEx
+		Private Function GetDecimalSep(value As String) As String
+		  Static rx As RegEx
 		  if rx is nil then
 		    rx = new RegEx
 		    rx.SearchPattern = "\d(\D)\d+%?$"
@@ -51,7 +51,7 @@ Protected Class ProfileLineData
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function pJustNumbers(value As String) As String
+		Private Function JustNumbers(value As String) As String
 		  // Strips anything from the value that's not a number
 		  
 		  static rx as RegEx
@@ -68,15 +68,17 @@ Protected Class ProfileLineData
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function pStringToDouble(value As String) As Double
+		Private Function StringToDouble(value As String) As Double
 		  // Converts a string to a double by trying to figure out which decimal point and separator symbols are being used.
 		  // Needed because the user might be opening a file created in another country.
 		  
-		  if value.Len < 3 then return value.CDbl // Assumes that we need at least three charactrers to make a determination
+		  If value.Len < 3 Then 
+		    Return value.CDbl // Assumes that we need at least three charactrers to make a determination
+		  End If
 		  
 		  dim r as Double
 		  
-		  dim decimalSep as String = pGetDecimalSep( value )
+		  Dim decimalSep As String = GetDecimalSep( value )
 		  if decimalSep = "" then
 		    return value.CDbl
 		  end if
@@ -86,7 +88,7 @@ Protected Class ProfileLineData
 		    r = value.CDbl
 		  else
 		    
-		    parts( 0 ) = pJustNumbers( parts( 0 ) )
+		    parts( 0 ) = JustNumbers( parts( 0 ) )
 		    value = Join( parts, "." )
 		    r = value.Val
 		    

@@ -5,11 +5,11 @@ Inherits ProfileBase
 		Sub ConstructFromData(data As ProfileLineData)
 		  Expanded = True // Threads default to expanded
 		  
-		  zMethodsDict = new Dictionary
-		  zName = data.ThreadName
-		  zID = data.Hash
+		  m_MethodsDict = new Dictionary
+		  m_Name = data.ThreadName
+		  m_ID = data.Hash
 		  
-		  zTimeSpentTotal = 0 // Will be update in Add
+		  m_TimeSpentTotal = 0 // Will be update in Add
 		  Add( data )
 		  
 		End Sub
@@ -17,7 +17,7 @@ Inherits ProfileBase
 
 	#tag Event
 		Function GetChildCount() As Integer
-		  return if( zMethodsDict is nil, 0, zMethodsDict.Count )
+		  return if( m_MethodsDict is nil, 0, m_MethodsDict.Count )
 		End Function
 	#tag EndEvent
 
@@ -25,19 +25,21 @@ Inherits ProfileBase
 	#tag Method, Flags = &h0
 		Sub Add(data As ProfileLineData)
 		  dim methods() as String = data.MethodNames
-		  if methods.Ubound = -1 then return
+		  If methods.Ubound = -1 Then 
+		    Return
+		  End If
 		  
 		  dim m as ProfileMethod
-		  if zMethodsDict.HasKey( methods( 0 ) ) then
-		    m = zMethodsDict.Value( methods( 0 ) )
+		  if m_MethodsDict.HasKey( methods( 0 ) ) then
+		    m = m_MethodsDict.Value( methods( 0 ) )
 		    m.Add( data )
 		  else
 		    m = new ProfileMethod( me, data )
-		    zMethodsDict.Value( m.Name ) = m
+		    m_MethodsDict.Value( m.Name ) = m
 		  end if
 		  
 		  if methods.Ubound = 0 then // Only the top level methods get added
-		    zTimeSpentTotal = zTimeSpentTotal + data.TimeSpent
+		    m_TimeSpentTotal = m_TimeSpentTotal + data.TimeSpent
 		  end if
 		  
 		End Sub
@@ -46,9 +48,11 @@ Inherits ProfileBase
 	#tag Method, Flags = &h0
 		Function Methods() As ProfileMethod()
 		  dim r() as ProfileMethod
-		  if zMethodsDict is nil then return r
+		  If m_MethodsDict Is Nil Then 
+		    Return r
+		  End If
 		  
-		  dim values() as Variant = zMethodsDict.Values
+		  dim values() as Variant = m_MethodsDict.Values
 		  dim sorter() as String
 		  for each item as ProfileMethod in values
 		    r.Append item
@@ -63,26 +67,29 @@ Inherits ProfileBase
 
 	#tag Method, Flags = &h0
 		Function Name() As String
-		  return zName
+		  return m_Name
 		  
 		End Function
 	#tag EndMethod
 
 
 	#tag Property, Flags = &h1
-		Protected zMethodsDict As Dictionary
+		Protected m_MethodsDict As Dictionary
 	#tag EndProperty
 
 	#tag Property, Flags = &h1
-		Protected zName As String
+		Protected m_Name As String
 	#tag EndProperty
 
 
 	#tag ViewBehavior
 		#tag ViewProperty
 			Name="Expanded"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Index"
@@ -90,6 +97,7 @@ Inherits ProfileBase
 			Group="ID"
 			InitialValue="-2147483648"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Left"
@@ -97,28 +105,39 @@ Inherits ProfileBase
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Name"
 			Visible=true
 			Group="ID"
+			InitialValue=""
 			Type="String"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Selected"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Super"
 			Visible=true
 			Group="ID"
+			InitialValue=""
 			Type="String"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="TimeSpent"
+			Visible=false
 			Group="Behavior"
+			InitialValue=""
 			Type="Double"
+			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Top"
@@ -126,6 +145,7 @@ Inherits ProfileBase
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class
